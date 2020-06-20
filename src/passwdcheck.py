@@ -3,12 +3,14 @@ import hashlib
 import argparse
 import getpass
 
+
 def request_api_data(chars: str):
     url = 'https://api.pwnedpasswords.com/range/' + chars
     res = requests.get(url)
     if res.status_code != 200:
         raise RuntimeError(f"Error fetching: {res.status_code}")
     return res
+
 
 def get_password_leaks_count(hashes, hash_to_check):
     hashes = (line.split(':') for line in hashes.text.splitlines())
@@ -17,16 +19,13 @@ def get_password_leaks_count(hashes, hash_to_check):
             return int(c)
     return 0
 
+
 def pwned_api_check(password):
     sha1password = hashlib.sha1(password.encode('UTF-8')).hexdigest().upper()
     first5_char, tail = sha1password[:5], sha1password[5:]
     response = request_api_data(first5_char)
     return get_password_leaks_count(response, tail)
 
-# def get_args():
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("-l", "--list", nargs="+", required=True)
-#     return parser.parse_args()
 
 def main():
     while True:
@@ -41,12 +40,3 @@ def main():
             print(f"[{pwd}] was FOUND {count} times")
         else:
             print(f"[Your Password] was not found")
-
-
-def user_test():
-    pwd = getpass.getpass(prompt="enter your password")
-    count = pwned_api_check(pwd)
-    if count > 0:
-        print(f"[{pwd}] was FOUND {count} times")
-    else:
-        print(f"[Your Password] was not found")
